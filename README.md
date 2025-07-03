@@ -1,6 +1,6 @@
-# Cinna
+# tutorial
 
-💻 CINNAMUNCH CHAT HIGHLIGHTER SETUP (FULL INSTRUCTIONS)
+💻 TWITCH CHAT HIGHLIGHTER SETUP (FULL INSTRUCTIONS)
 
 1. ✅ Install Node.js:
    - Go to https://nodejs.org
