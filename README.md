@@ -1,4 +1,5 @@
 # tutorial
+#is originaly made for cinna :)
 
 💻 TWITCH CHAT HIGHLIGHTER SETUP (FULL INSTRUCTIONS)
 
