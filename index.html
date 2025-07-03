@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat Highlighter</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #111;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h2 {
+      margin-top: 40px;
+      color: #0ff;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      max-width: 400px;
+      margin: auto;
+    }
+
+    li {
+      background: #222;
+      margin: 5px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    button {
+      margin-left: 10px;
+      padding: 4px 8px;
+    }
+
+    input {
+      padding: 8px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🟣 Chat Highlighter</h1>
+
+  <h2>Top Chat Words (last 30s)</h2>
+  <ul id="words"></ul>
+
+  <h2>Important Words</h2>
+  <ul id="important"></ul>
+
+  <h2>Manage Important Words</h2>
+  <div>
+    <input id="newWord" placeholder="Add word..." />
+    <button onclick="addImportantWord()">Add</button>
+  </div>
+  <ul id="editableList"></ul>
+
+  <script>
+    const socket = io();
+    const wordList = document.getElementById('words');
+    const importantList = document.getElementById('important');
+    const editableList = document.getElementById('editableList');
+
+    let previousImportant = {};
+
+    socket.on('topWords', data => {
+      wordList.innerHTML = '';
+      data.forEach(([word, count]) => {
+        const li = document.createElement('li');
+        li.textContent = `${word} — ${count}`;
+        wordList.appendChild(li);
+      });
+    });
+
+    socket.on('importantWords', data => {
+      importantList.innerHTML = '';
+      for (const word in data) {
+        const li = document.createElement('li');
+        li.textContent = `${word} — ${data[word]}`;
+        li.style.color = 'yellow';
+        li.style.fontWeight = 'bold';
+        li.style.background = '#880';
+        importantList.appendChild(li);
+
+        // Flash alert if the word count increases
+        if (!previousImportant[word] || data[word] > previousImportant[word]) {
+          showKeywordAlert(word);
+        }
+      }
+      previousImportant = { ...data };
+    });
+
+    socket.on('importantList', list => {
+      editableList.innerHTML = '';
+      list.forEach(word => {
+        const li = document.createElement('li');
+        li.innerHTML = `${word} <button onclick="removeImportantWord('${word}')">❌</button>`;
+        editableList.appendChild(li);
+      });
+    });
+
+    function addImportantWord() {
+      const word = document.getElementById('newWord').value.trim().toLowerCase();
+      if (word) {
+        socket.emit('addImportantWord', word);
+        document.getElementById('newWord').value = '';
+      }
+    }
+
+    function removeImportantWord(word) {
+      socket.emit('removeImportantWord', word);
+    }
+
+    function showKeywordAlert(word) {
+      const alert = document.createElement('div');
+      alert.textContent = `⚠ ${word.toUpperCase()} ⚠`;
+      alert.style.position = 'fixed';
+      alert.style.top = '20px';
+      alert.style.left = '50%';
+      alert.style.transform = 'translateX(-50%)';
+      alert.style.background = '#ff0';
+      alert.style.color = '#000';
+      alert.style.padding = '15px 30px';
+      alert.style.fontSize = '24px';
+      alert.style.fontWeight = 'bold';
+      alert.style.borderRadius = '10px';
+      alert.style.zIndex = '9999';
+      alert.style.boxShadow = '0 0 10px #000';
+
+      document.body.appendChild(alert);
+
+      setTimeout(() => {
+        alert.remove();
+      }, 2500);
+    }
+  </script>
+</body>
+</html>
